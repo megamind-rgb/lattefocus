@@ -80,7 +80,7 @@
       focusHint.textContent = 'Ready for your next session?';
       caption.textContent = 'DEMO SESSION COMPLETE';
       startButton.querySelector('span').textContent = 'Start again';
-      demoNote.textContent = 'Your browser demo is complete. Download the Mac app for focus sessions, app controls, and your own activity history.';
+      demoNote.textContent = 'Your browser demo is complete. lattefocus for Mac launches in November 2026, with real focus sessions, app controls and your own activity history. Join the launch list for 80% off for life.';
     }
   }
 
@@ -110,7 +110,7 @@
       started = true;
       deadline = Date.now() + secondsLeft * 1000;
       ticker = setInterval(tick, 250);
-      demoNote.textContent = 'Your browser demo is running. No apps are blocked and no activity is tracked. End or reset the demo at any time.';
+      demoNote.textContent = 'Your browser demo is running. No apps are blocked, and the demo records nothing. End or reset the demo at any time.';
     }
     renderSession();
     renderClock();
@@ -123,7 +123,7 @@
     secondsLeft = minutes * 60;
     renderSession();
     renderClock();
-    demoNote.textContent = 'Browser demo with sample activity. No apps are blocked or activity tracked.';
+    demoNote.textContent = 'Browser demo with sample activity. No apps are blocked, and the demo records nothing.';
   });
 
   function setDark(dark) {
@@ -206,12 +206,11 @@
     const apps = document.querySelector('#selected-apps');
     apps.setAttribute('aria-label', chosenApps.length ? `Example focus apps: ${chosenApps.join(', ')}` : 'No example apps selected');
     apps.replaceChildren(...chosenApps.map(name => {
+      // A plain letter tile: the demo never draws other companies' app icons.
       const icon = document.createElement('span');
-      icon.className = `app-icon ${name.toLowerCase()}`;
+      icon.className = 'app-icon';
       icon.title = name;
-      if (name === 'Figma') for (let i = 0; i < 5; i++) icon.append(document.createElement('i'));
-      else if (name === 'Pages') icon.textContent = 'P';
-      else icon.append(document.createElement('span'));
+      icon.textContent = name[0].toUpperCase();
       return icon;
     }));
     document.querySelector('#space-description').textContent = `${chosenApps.length} ${chosenApps.length === 1 ? 'essential' : 'essentials'} selected.`;
@@ -224,7 +223,6 @@
     const target = id && document.getElementById(id);
     if (target instanceof HTMLDetailsElement) target.open = true;
   }
-  document.querySelectorAll('a[href="#install-faq"]').forEach(link => link.addEventListener('click', () => { document.querySelector('#install-faq').open = true; }));
   window.addEventListener('hashchange', openLinkedQuestion);
   openLinkedQuestion();
   if ('IntersectionObserver' in window && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
@@ -239,32 +237,6 @@
       reveal.observe(element);
     });
   }
-  // The release details come from release.js, which scripts/publish_release.sh rewrites
-  // for every release. Without it the page keeps the wording written in the HTML.
-  function showRelease(release) {
-    if (!release || typeof release !== 'object') return;
-    const all = selector => document.querySelectorAll(selector);
-    const isWebLink = url => typeof url === 'string' && url.startsWith('https://');
-    const version = /^\d+(\.\d+){0,3}$/.test(release.version) ? `v${release.version}` : '';
-    const minimum = /^\d+(\.\d+)*$/.test(release.minimum_macos) ? `macOS ${release.minimum_macos.replace(/(\.0)+$/, '')}+` : '';
-    const size = Number(release.size) > 0 ? `${(Number(release.size) / 1e6).toFixed(1)} MB` : '';
-    if (isWebLink(release.download)) all('[data-release-link]').forEach(link => { link.href = release.download; });
-    if (isWebLink(release.notes_url)) all('[data-release="notes"]').forEach(link => { link.href = release.notes_url; });
-    if (version) all('[data-release="version"]').forEach(node => { node.textContent = version; });
-    if (minimum) all('[data-release="minimum"]').forEach(node => { node.textContent = minimum; });
-    // Size 0 means unknown: the size, and the separator kept with it, stay hidden.
-    all('[data-release="size"]').forEach(node => { node.textContent = size; });
-    all('[data-release-if="size"]').forEach(node => { node.hidden = !size; });
-  }
-  showRelease(window.LATTEFOCUS_RELEASE);
-  // The download goes on in the background (the zip is on GitHub, so the page stays).
-  let toastTimeout;
-  document.querySelectorAll('[data-release-link]').forEach(link => link.addEventListener('click', () => {
-    const toast = document.querySelector('#download-toast');
-    toast.hidden = false;
-    clearTimeout(toastTimeout);
-    toastTimeout = setTimeout(() => { toast.hidden = true; }, 6500);
-  }));
   document.addEventListener('visibilitychange', () => { if (!document.hidden) tick(); });
   window.addEventListener('pagehide', () => clearInterval(ticker));
   window.addEventListener('pageshow', event => {
